@@ -1,12 +1,14 @@
 import { bcryptAdapter, envs, JwtAdapter } from '../../config';
-import { UserModel } from '../../data';
+import { PaysModel, UserModel } from '../../data';
 import { CustomError, LoginUserDto, ModifyUserDto, PaginationDto, RegisterUserDto, UserEntity } from '../../domain';
 import { EmailService } from './email.service';
+import { PayService } from './pay.service';
 
 export class AuthService {
 
     constructor(
-        private readonly emailService: EmailService
+        private readonly emailService: EmailService,
+        private readonly payService: PayService,
     ) { }
 
     public async registerUser(registerUserDto: RegisterUserDto) {
@@ -51,14 +53,25 @@ export class AuthService {
         const existUser = await UserModel.findOne({ dni });
         if (!existUser) throw CustomError.notFound('Usuario no encontrado');
 
-        //Comparar la contraseña
+        const isUserCancelled = existUser.outDate;
+        if (isUserCancelled) throw CustomError.notFound('El usuario ha sido dado de baja');
+
         const isPasswordValid = bcryptAdapter.compare(password, existUser.password);
         if (!isPasswordValid) throw CustomError.badRequest('Contraseña incorrecta');
+
+        const isUserValidated = existUser.emailValidated;
+        if(!isUserValidated)  await this.sendEmailValidation(existUser.email);
+
+        if (!isUserValidated) throw CustomError.badRequest('El correo no ha sido validado. Se ha enviado otro correo para validar');
         
         const { password: _, ...userEntity } = UserEntity.fromObject(existUser);
 
         const token = await JwtAdapter.generateToken({ id: userEntity.id }, '10h');
         if (!token) throw CustomError.internalServer('Error generando token');
+
+        // const pays = res.filter(pay => pay.user === user.id && pay.state === PayState.Pending && new Date(pay.finishDate) < new Date());
+        const pays = await PaysModel.find({ user: userEntity.id, state: 'PENDING', finishDate: { $lt: new Date() } });
+        if (pays.length > 0) throw CustomError.badRequest('Tienes cuotas pendientes de pago');
 
         return {
             user: userEntity,
@@ -67,51 +80,42 @@ export class AuthService {
 
     }
 
-    async getUsers( paginationDto: PaginationDto ) {
-        const { page, limit } = paginationDto;
-
+    async getUsers(query: string, limit: number) {
         try {
-            const [ total, users ] = await Promise.all([
-                UserModel.countDocuments(),
-                UserModel.find()
-                    .skip( (page - 1) * limit )
-                    .limit( limit )
+            const regex = new RegExp(query, 'i');
+    
+            const [total, users] = await Promise.all([,
+                UserModel.find({
+                    $or: [{ name: regex }, { lastname: regex }]
+                })
+                .limit(limit)
             ]);
-
+    
             return {
-                page,
-                limit,
-                total,
-
-                next: `/api/user?page=${ ( page + 1 ) }&limit=${ limit }`,
-                prev: (page - 1 > 0) ? `/api/user?page=${ ( page - 1 ) }&limit=${ limit }`: null,
-                
-
-                users: users.map( user => UserEntity.fromObject(user) ),
-            }
-        } catch ( error ) {
-            throw CustomError.internalServer( (error as Error).message );
+                users: users.map(user => UserEntity.fromObject(user)),
+            };
+        } catch (error) {
+            throw CustomError.internalServer((error as Error).message);
         }
     }
 
-    async getUser( dni: string ) {
+    async getUserById( id: string ) {
 
         try {
-            const user = await UserModel.findOne({ dni });
+            console.log('id', id);
+            const user = await UserModel.findById(id);
             if (!user) throw CustomError.notFound('Usuario no encontrado');
 
-            return {
-                user: UserEntity.fromObject(user)
-            }
+            return UserEntity.fromObject(user)
         } catch ( error ) {
             throw CustomError.internalServer( (error as Error).message );
         }
     }
 
     public async updateUser(modifyUserDto: ModifyUserDto) {
-        const { dni } = modifyUserDto;
+        const { id } = modifyUserDto;
 
-        const user = await UserModel.findOne({ dni });
+        const user = await UserModel.findById(id);
         if (!user) throw CustomError.notFound('Usuario no encontrado');
 
         try {
@@ -120,7 +124,9 @@ export class AuthService {
                     (user as any)[key] = modifyUserDto[key as keyof ModifyUserDto];
                 }
             }
-            
+
+            if (modifyUserDto.password) user.password = bcryptAdapter.hash(modifyUserDto.password);
+
             await user.save();
 
             const { password, ...userEntity } = UserEntity.fromObject(user);
@@ -131,17 +137,19 @@ export class AuthService {
         }
     }
 
+    public async deleteUser( id: string ) {
+
+        try {
+            const deletedPay = await UserModel.findByIdAndUpdate(id, { outDate: new Date() });
+            if (!deletedPay) throw CustomError.notFound('Usuario no encontrado');
+
+            return;
+        } catch ( error ) {
+            throw CustomError.internalServer( (error as Error).message );
+        }
+    }
+
     public async checkToken(user: UserEntity) {
-        // const payload = await JwtAdapter.validateToken(token);
-        // if (!payload) throw CustomError.unauthorized('Token de autenticación inválido');
-
-        // const { id } = payload as { id: string };
-        // if (!id) throw CustomError.internalServer('Falta el Id del usuario en el token');
-
-        // const user = await UserModel.findById(id);
-        // if (!user) throw CustomError.notFound('Token de autenticación inválido - Usuario no encontrado');
-        
-        // const { password: _, ...userEntity } = UserEntity.fromObject(user);
 
         const { password: _, ...userEntity } = user;
 
@@ -170,8 +178,25 @@ export class AuthService {
 
         try {
             user.emailValidated = true;
-
             await user.save();
+
+            const userId = user.id;
+
+            //Si no tiene cuota inicial de hermano
+            const pay = await PaysModel.findOne({ user: userId, concept: 'Cuota inicial de hermano' });
+            if (!pay) {
+                const finishDate = new Date();
+                finishDate.setMonth(finishDate.getMonth() + 1);
+                this.payService.createPay({
+                    user: userId,
+                    concept: 'Cuota inicial de hermano',
+                    quantity: 25,
+                    startDate: new Date(),
+                    finishDate: finishDate,
+                    state: 'PENDING',
+                }); 
+            }
+
         } catch (error) {
             throw CustomError.internalServer(`${error}`);
         }
@@ -183,7 +208,7 @@ export class AuthService {
         const token = await JwtAdapter.generateToken({ email }, '10m');
         if (!token) throw CustomError.internalServer('Error generando token');
 
-        const link = `${envs.WEBSERVICE_URL}/auth/validate-email/${token}`;
+        const link = `${envs.WEBSERVICE_URL}/user/validate-email/${token}`;
         const html = `
         <!DOCTYPE html>
         <html lang="es">

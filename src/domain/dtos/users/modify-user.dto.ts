@@ -1,30 +1,28 @@
 import { regularExps } from '../../../config';
 
-
+type UserRole = 'ADMIN_ROLE' | 'MAYORDOMIA_ROLE' | 'COMUNICACIONES_ROLE';
 
 
 export class ModifyUserDto {
 
   private constructor(
-    public dni: string,
-    public name?: string,
-    public lastname?: string,
-    public password?: string,
-    public birthDate?: Date,
-    public email?: string,
-    public admissionDate?: Date,
-    public outDate?: Date,
-    public address?: string,
-    public role?: string,
+    public readonly id: string,
+    public readonly dni?: string,
+    public readonly name?: string,
+    public readonly lastname?: string,
+    public readonly password?: string,
+    public readonly birthdate?: Date,
+    public readonly email?: string,
+    public readonly address?: string,
+    public readonly role?: UserRole,
   ) {}
 
   static create( object: { [key:string]:any } ): [string?, ModifyUserDto?] {
-    const { dni, name, lastname, password, birthDate, email, admissionDate, outDate, address, role } = object;
+    const { id, dni, name, lastname, password, birthdate, email, address, role } = object;
 
-    if ( !dni ) return ['Missing dni'];
-    if ( !regularExps.dni.test( dni ) ) return ['DNI is not valid'];
+    if (!id) return ['Falta el id'];
 
-    return [undefined, new ModifyUserDto(dni, name, lastname, password, birthDate, email, admissionDate, outDate, address, role)];
+    return [undefined, new ModifyUserDto(id, dni, name, lastname, password, birthdate, email, address, role)];
 
   }
 

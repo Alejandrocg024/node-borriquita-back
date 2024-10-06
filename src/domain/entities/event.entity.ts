@@ -7,7 +7,7 @@ export class EventEntity {
         public startDate: Date,
         public endDate: Date,
         public allDay: boolean,
-        public description: string,
+        public description?: string,
         public location?: string
     ){}
 
@@ -26,8 +26,6 @@ export class EventEntity {
             if (endDate < startDate) throw CustomError.badRequest('La fecha de fin debe ser posterior a la fecha de inicio');
 
             if ( allDay === undefined ) throw CustomError.badRequest('Falta el campo allDay');
-
-            if( !description ) throw CustomError.badRequest('Falta la descripción');
 
             return new EventEntity(id || _id, title, startDate, endDate, allDay, description, location);        
     }

@@ -20,7 +20,7 @@ const respuestaSchema = new mongoose.Schema({
 const requestFormSchema = new mongoose.Schema({
     type: {
         type: String,
-        enum: ['ALTA', 'BAJA', 'ASIGNACIÓN', 'CONSULTA', 'OTROS'],
+        enum: ['BAJA', 'ASIGNACIÓN', 'CONSULTA', 'OTROS'],
         required: [true, 'Type is required']
     },
     date: {
@@ -34,14 +34,14 @@ const requestFormSchema = new mongoose.Schema({
     },
     user: {
         type: mongoose.Schema.Types.ObjectId,
-        required: [true, 'User is required'],
         ref: 'User'
     },
     email: {
         type: String
     },
     answers:{
-        type: [respuestaSchema]
+        type: [respuestaSchema],
+        default: []
     }
 });
 

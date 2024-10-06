@@ -5,6 +5,7 @@ import { UpdateAnnouncementDto } from "../../domain/dtos/announcements/update-an
 
 export class AnnouncementController {
 
+    
     // DI
     constructor(
         private readonly announcementService: AnnouncementService
@@ -36,9 +37,10 @@ export class AnnouncementController {
         console.log('User role: ', userRole);
         this.announcementService.getAnnouncement(id)
             .then( (ann) => {
-                if (!ann?.available && (userRole !== 'MAYORDOMIA_ROLE' || userRole !== 'COMUNICACIONES_ROLE')) {
-                    return res.status(401).json({error: 'No tienes permisos para ver esta noticia'});
-                }
+                // if (!ann?.available && (userRole !== 'MAYORDOMIA_ROLE' || userRole !== 'COMUNICACIONES_ROLE')) {
+                //     console.log('No tienes permisos para ver esta noticia');
+                //     return res.status(401).json({error: 'No tienes permisos para ver esta noticia'});
+                // }
                 return res.json(ann);
             }  )
             .catch( (error) => this.handleError(error, res) );

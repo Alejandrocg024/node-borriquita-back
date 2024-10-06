@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { AuthService } from "../services/user.service";
 import { CustomError, RegisterUserDto, LoginUserDto, ModifyUserDto, PaginationDto } from "../../domain";
+import { envs } from "../../config";
 
 export class AuthController {
 
@@ -21,6 +22,7 @@ export class AuthController {
     registerUser = (req: Request, res: Response) => {
         const [error, registerUserDto] = RegisterUserDto.create(req.body);
 
+        console.log('Error', error);
         if (error) return res.status(400).json({ error });
 
         this.authService.registerUser(registerUserDto!)
@@ -40,19 +42,34 @@ export class AuthController {
 
     validateEmail = (req: Request, res: Response) => {
         const { token } = req.params;
+        const link = `${envs.FRONTEND_URL}/auth/login`;
         this.authService.validateEmail(token)
-            .then((user) => res.json('Email validado'))
+            .then((user) => res.send(`
+                <html>
+                  <head>
+                    <title>Email Validado</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 50px; text-align: center; }
+                        h1 { color: #980000; }
+                        p { font-size: 18px; color: #555; }
+                        button { margin-top: 20px; padding: 10px 20px; background-color: #980000; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; }
+                        button:hover { background-color: #CC0000;  }
+                        a { text-decoration: none; color: white; }
+                    </style>
+                  </head>
+                  <body>
+                    <h1>¡Correo validado correctamente!</h1>
+                    <p>Gracias por validar tu correo. Ya puedes utilizar todas las funcionalidades de la plataforma.</p>
+                    <button>
+                    <a href=${link}>Ir a la página de inicio de sesión</a>
+                    </button>
+                  </body>
+                </html>
+            `))
             .catch((error) => this.handleError(error, res));
     }
 
     checkToken = (req: Request, res: Response) => {
-        // const authorization = req.header('Authorization');
-        // if(!authorization) return res.status(401).json({error: 'Falta el token de autenticación'});
-        // if(!authorization.startsWith('Bearer ')) return res.status(401).json({error: 'Token de autenticación inválido'});
-
-        // const token = authorization.split(' ')[1] || '';
-        // if(!token) return res.status(401).json({error: 'Falta el token de autenticación'});
-
 
         this.authService.checkToken(req.body.user)
             .then((user) => res.json(user))
@@ -60,9 +77,8 @@ export class AuthController {
     }
 
     updateUser = (req: Request, res: Response) => {
-        const { dni } = req.params;
-        req.body.dni = dni;
-        const [error, modifyUserDTO] = ModifyUserDto.create(req.body);
+        const { id } = req.params;
+        const [error, modifyUserDTO] = ModifyUserDto.create({ id, ...req.body });
 
         if (error) return res.status(400).json({ error });
 
@@ -72,19 +88,25 @@ export class AuthController {
     }
 
     getUsers = (req: Request, res: Response) => {
-        const { page = 1, limit = 10 } = req.query;
-        const [error, paginationDto] = PaginationDto.create(+page, +limit);
-        if (error) return res.status(400).json({ error });
-
-        this.authService.getUsers(paginationDto!)
+        const query = typeof req.query.q === 'string' ? req.query.q : '';
+        const limit = typeof req.query.limit === 'string' ? parseInt(req.query.limit, 10) : 5;
+        
+        this.authService.getUsers(query, limit)
             .then((users) => res.json(users))
             .catch((error) => this.handleError(error, res));
     }
 
     getUser = (req: Request, res: Response) => {
-        const { dni } = req.params;
-        this.authService.getUser(dni)
+        const { id } = req.params;
+        this.authService.getUserById(id)
             .then((user) => res.json(user))
+            .catch((error) => this.handleError(error, res));
+    }
+
+    deleteUser = (req: Request, res: Response) => {
+        const { id } = req.params;
+        this.authService.deleteUser(id)
+            .then(() => res.json('Usuario dado de baja'))
             .catch((error) => this.handleError(error, res));
     }
 

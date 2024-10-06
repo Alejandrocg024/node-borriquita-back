@@ -21,4 +21,7 @@ export const envs = {
   CLOUDINARY_API_KEY: get('CLOUDINARY_API_KEY').required().asString(),
   CLOUDINARY_API_SECRET: get('CLOUDINARY_API_SECRET').required().asString(),
 
+  STRIPE_API_KEY: get('STRIPE_API_KEY').required().asString(),
+  FRONTEND_URL:get('FRONTEND_URL').required().asString(),
+
 }

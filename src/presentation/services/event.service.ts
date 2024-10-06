@@ -1,4 +1,4 @@
-import { EventModel } from "../../data/mongo";
+import { EventModel } from "../../data";
 import { CustomError, PaginationDto, UpdateEventDto, UserEntity } from "../../domain";
 import { CreateEventDto } from "../../domain/dtos/events/create-event.dto";
 import { EventEntity } from "../../domain/entities/event.entity";

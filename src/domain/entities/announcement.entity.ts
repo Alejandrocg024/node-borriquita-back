@@ -24,6 +24,8 @@ export class AnnouncementEntity {
 
             if( !modificationDate ) throw CustomError.badRequest('Falata la fecha de modificación');
 
+            if ( modificationDate < publicationDate ) throw CustomError.badRequest('La fecha de modificación debe ser posterior a la fecha de publicación');
+
             if( available === undefined ) throw CustomError.badRequest('Falata la disponibilidad');
 
             if( !author ) throw CustomError.badRequest('Falta el autor');

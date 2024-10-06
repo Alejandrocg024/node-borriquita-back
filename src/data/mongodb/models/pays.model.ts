@@ -4,9 +4,9 @@ const paysSchema = new mongoose.Schema({
     user:{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        required: true
+        required: [true, 'user payer is required']
     },
-    information:{
+    concept:{
         type: String,
         required: [true, 'Information is required']
     },

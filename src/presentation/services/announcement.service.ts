@@ -7,6 +7,7 @@ export class AnnouncementService {
 
     async getAnnouncements( paginationDto: PaginationDto ) {
         const { page, limit } = paginationDto;
+        console.log('PaginationDto', paginationDto);
 
         try {
             const [ total, announcement ] = await Promise.all([
@@ -16,6 +17,8 @@ export class AnnouncementService {
                     .limit( limit )
                     .populate('author')
             ]);
+
+            console.log('Total', announcement);
 
             return {
                 page,

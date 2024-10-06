@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { AuthController } from './controller';
-import { AuthService, EmailService } from '../services';
+import { AuthService, EmailService, PayService } from '../services';
 import { envs } from '../../config';
 import { AuthMiddleware } from '../middlewares/auth.middleware';
 
@@ -15,20 +15,21 @@ export class UserRoutes {
       envs.MAILER_EMAIL,
       envs.MAILER_SECRET_KEY,
     );
-    
-   const authService: AuthService = new AuthService(emailService);
+
+    const payService = new PayService();
+    const authService: AuthService = new AuthService(emailService, payService);
 
     const controller = new AuthController(authService);
 
     router.post('/login', controller.loginUser);
     router.post('/register', controller.registerUser);
     router.get('/validate-email/:token', controller.validateEmail);
-    router.get('/check-token', [ AuthMiddleware.validateJWT ],controller.checkToken);
-    router.put('/update/:dni', controller.updateUser);
+    router.get('/check-token', [AuthMiddleware.validateJWT], controller.checkToken);
+
+    router.get('/:id', controller.getUser);
     router.get('/', controller.getUsers);
-    router.get('/:dni', controller.getUser);
-
-
+    router.put('/update/:id', controller.updateUser);
+    router.delete('/delete/:id', controller.deleteUser);
 
     return router;
   }

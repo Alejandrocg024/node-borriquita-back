@@ -1,36 +1,40 @@
 import { regularExps } from '../../../config';
 
 
-
+type UserRole = 'ADMIN_ROLE' | 'MAYORDOMIA_ROLE' | 'COMUNICACIONES_ROLE';
 
 export class RegisterUserDto {
 
   private constructor(
-    public dni: string,
-    public name: string,
-    public lastname: string,
-    public password: string,
-    public birthDate: Date,
-    public email: string,
-    public admissionDate?: Date,
-    public address?: string,
+    public readonly dni: string,
+    public readonly name: string,
+    public readonly lastname: string,
+    public readonly password: string,
+    public readonly birthDate: Date,
+    public readonly email: string,
+    public readonly emailValidated: boolean,
+    public readonly admissionDate: Date,
+    public readonly address?: string,
+    public readonly role?: UserRole,
   ) {}
 
   static create( object: { [key:string]:any } ): [string?, RegisterUserDto?] {
-    const { dni, name, lastname, password, birthDate, email, admissionDate, address } = object;
+    const { dni, name, lastname, password, birthDate, email, admissionDate,address, role } = object;
 
-    if ( !dni ) return ['Missing dni'];
-    if ( !regularExps.dni.test( dni ) ) return ['DNI is not valid'];
-    if ( !name ) return ['Missing name'];
-    if ( !lastname ) return ['Missing lastname'];
-    if ( !password ) return ['Missing password'];
-    if ( password.length < 6 ) return ['Password too short'];
-    if ( !birthDate ) return ['Missing birthDate'];
-    if ( !regularExps.fecha.test( birthDate ) ) return ['BirthDate is not valid'];
-    if ( !email ) return ['Missing email'];
-    if ( !regularExps.email.test( email ) ) return ['Email is not valid'];
+    if ( !dni ) return ['Falta el DNI'];
+    if ( !regularExps.dni.test( dni ) ) return ['DNI no válido'];
 
-    return [undefined, new RegisterUserDto(dni, name, lastname, password, birthDate, email, admissionDate, address)];
+    if ( !name ) return ['Falta el nombre'];
+
+    if ( !lastname ) return ['Falta el apellido'];
+
+    if ( !password ) return ['Falta la contraseña'];
+
+    if ( !birthDate ) return ['Falta la fecha de nacimiento'];
+
+    if ( !email ) return ['Falta el email'];
+
+    return [undefined, new RegisterUserDto(dni, name, lastname, password, birthDate, email, false, new Date(), address, role)];
 
   }
 

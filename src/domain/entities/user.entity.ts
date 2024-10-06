@@ -1,4 +1,7 @@
 import { CustomError } from '../errors/custom.error';
+import { regularExps } from '../../config';
+
+export type UserRole = 'ADMIN_ROLE' | 'MAYORDOMIA_ROLE' | 'COMUNICACIONES_ROLE';
 
 export class UserEntity {
     constructor(
@@ -13,17 +16,17 @@ export class UserEntity {
         public admissionDate: Date,
         public outDate?: Date,
         public address?: string,
-        public role?: string,
+        public role?: UserRole,
     ){}
 
 
     static fromObject(obj: { [key:string]: any}): UserEntity {
             const { id, _id, dni, name, lastname, password, birthDate, email, emailValidated, admissionDate, outDate, address, role } = obj;
-
             
             if( !_id && !id ) throw CustomError.badRequest('Falta el ID');
 
             if( !dni ) throw CustomError.badRequest('Falta el DNI');
+            if(!regularExps.dni.test(dni)) throw CustomError.badRequest('El DNI no es válido');
 
             if( !name ) throw CustomError.badRequest('Falta el nombre');
 

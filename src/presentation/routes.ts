@@ -12,12 +12,13 @@ export class AppRoutes {
 
     const router = Router();
 
-    router.use('/api/user', UserRoutes.routes);
-    router.use('/api/announcement', AnnouncementRoutes.routes);
-    router.use('/api/upload', FileUploadRoutes.routes);
-
     router.use('/api/event', EventRoutes.routes);
+    router.use('/api/user', UserRoutes.routes);
     router.use('/api/pay',  PayRoutes.routes);
+    router.use('/api/announcement', AnnouncementRoutes.routes);
+
+    router.use('/api/upload', FileUploadRoutes.routes);
+    
     router.use('/api/requestForm', RequestFormRoutes.routes);
     
     return router;

@@ -9,7 +9,7 @@ export class CreateEventDto {
         public readonly startDate: Date,
         public readonly endDate: Date,
         public readonly allDay: boolean,
-        public readonly description: string,
+        public readonly description?: string,
         public readonly location?: string
     ) { }
 
@@ -22,9 +22,7 @@ export class CreateEventDto {
         if (!startDate) return ['Falta la fecha de inicio'];
         if (!endDate) return ['Falata la fecha de fin'];
         if (endDate < startDate) return ['La fecha de fin debe ser posterior a la fecha de inicio'];
-
-        if (!description) return ['Falta la descripción'];
-
+        
         if (allDay === undefined) return ['Falta el campo ¿todo el día?'];
 
         return [undefined, new CreateEventDto(title, startDate, endDate, allDay, description, location)];
