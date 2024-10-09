@@ -86,6 +86,7 @@ export class PayService {
 
             const token = await JwtAdapter.generateToken({ id }, '10m');
             if (!token) throw CustomError.internalServer('Error generando token');
+            console.log(`${envs.FRONTEND_URL}/hermanos/aceptar/${token}`);
 
             const item = {
                 price_data: {
@@ -106,6 +107,7 @@ export class PayService {
                 customer_email: email,
             });
             
+            
             return session;
         } catch ( error ) {
             throw CustomError.internalServer( (error as Error).message );
@@ -117,13 +119,16 @@ export class PayService {
         if (!user) throw CustomError.badRequest('Usuario no encontrado');
 
         const payload = await JwtAdapter.validateToken(token);
+        console.log(payload);
         if (!payload) throw CustomError.unauthorized('Token inválido');
 
         const { id } = payload as { id: string };
         if (!id) throw CustomError.internalServer('Falta el id en el token');
 
-        const pay = await this.getPay(id);
+        const pay = await PaysModel.findById(id).populate('user');
         if (!pay) throw CustomError.notFound('Pago no encontrado');
+
+        if (pay.user._id.toString() !== user.id) throw CustomError.unauthorized('No autorizado');
 
         pay.state = 'PAID';
         pay.finishDate = new Date();
