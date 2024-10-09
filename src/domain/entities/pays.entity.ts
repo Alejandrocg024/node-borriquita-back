@@ -17,14 +17,11 @@ export class PayEntity {
 
 
     static fromObject(obj: { [key:string]: any}): PayEntity {
-        console.log(obj);
             const { id, _id, user, concept, quantity, startDate, finishDate, state, payMethod } = obj;
 
             if( !_id && !id ) throw CustomError.badRequest('Falta el ID');
 
             if( !user ) throw CustomError.badRequest('Falta el usuario');
-
-            console.log('papapa', concept);
 
             if( !concept ) throw CustomError.badRequest('Falta el concepto');
 

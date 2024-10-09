@@ -60,18 +60,17 @@ export class AuthService {
         if (!isPasswordValid) throw CustomError.badRequest('Contraseña incorrecta');
 
         const isUserValidated = existUser.emailValidated;
-        if(!isUserValidated)  await this.sendEmailValidation(existUser.email);
+        if (!isUserValidated) await this.sendEmailValidation(existUser.email);
 
         if (!isUserValidated) throw CustomError.badRequest('El correo no ha sido validado. Se ha enviado otro correo para validar');
-        
+
         const { password: _, ...userEntity } = UserEntity.fromObject(existUser);
 
         const token = await JwtAdapter.generateToken({ id: userEntity.id }, '10h');
         if (!token) throw CustomError.internalServer('Error generando token');
 
-        // const pays = res.filter(pay => pay.user === user.id && pay.state === PayState.Pending && new Date(pay.finishDate) < new Date());
         const pays = await PaysModel.find({ user: userEntity.id, state: 'PENDING', finishDate: { $lt: new Date() } });
-        if (pays.length > 0) throw CustomError.badRequest('Tienes cuotas pendientes de pago');
+        if (pays.length > 0) throw CustomError.badRequest('Tienes cuotas pendientes de pago. Contacte con la hermandad.');
 
         return {
             user: userEntity,
@@ -83,14 +82,14 @@ export class AuthService {
     async getUsers(query: string, limit: number) {
         try {
             const regex = new RegExp(query, 'i');
-    
+
             const [total, users] = await Promise.all([,
                 UserModel.find({
                     $or: [{ name: regex }, { lastname: regex }]
                 })
-                .limit(limit)
+                    .limit(limit)
             ]);
-    
+
             return {
                 users: users.map(user => UserEntity.fromObject(user)),
             };
@@ -99,16 +98,15 @@ export class AuthService {
         }
     }
 
-    async getUserById( id: string ) {
+    async getUserById(id: string) {
+        const user = await UserModel.findById(id);
+        if (!user) throw CustomError.notFound('Usuario no encontrado');
 
         try {
-            console.log('id', id);
-            const user = await UserModel.findById(id);
-            if (!user) throw CustomError.notFound('Usuario no encontrado');
 
             return UserEntity.fromObject(user)
-        } catch ( error ) {
-            throw CustomError.internalServer( (error as Error).message );
+        } catch (error) {
+            throw CustomError.internalServer((error as Error).message);
         }
     }
 
@@ -137,15 +135,15 @@ export class AuthService {
         }
     }
 
-    public async deleteUser( id: string ) {
+    public async deleteUser(id: string) {
+        const deletedPay = await UserModel.findByIdAndUpdate(id, { outDate: new Date() });
+        if (!deletedPay) throw CustomError.notFound('Usuario no encontrado');
 
         try {
-            const deletedPay = await UserModel.findByIdAndUpdate(id, { outDate: new Date() });
-            if (!deletedPay) throw CustomError.notFound('Usuario no encontrado');
 
             return;
-        } catch ( error ) {
-            throw CustomError.internalServer( (error as Error).message );
+        } catch (error) {
+            throw CustomError.internalServer((error as Error).message);
         }
     }
 
@@ -163,7 +161,7 @@ export class AuthService {
 
 
     }
-        
+
 
     public async validateEmail(token: string) {
         const payload = await JwtAdapter.validateToken(token);
@@ -194,7 +192,7 @@ export class AuthService {
                     startDate: new Date(),
                     finishDate: finishDate,
                     state: 'PENDING',
-                }); 
+                });
             }
 
         } catch (error) {

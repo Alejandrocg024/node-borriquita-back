@@ -49,8 +49,8 @@ export class Server {
 
   }
 
-  public close() {
-    this.serverListener?.close();
+  async close() {
+    await this.serverListener?.close();
   }
 
 }

@@ -31,13 +31,10 @@ export class EventController {
     createEvent = (req: Request, res: Response) => {
         const [error, createEventDto] = CreateEventDto.create(req.body);
 
-        console.log(createEventDto);
-
-
         if(error) return res.status(400).json({error});
 
         this.eventService.createEvent(createEventDto!)
-            .then( (event) => res.json(event) ) 
+            .then( (event) => res.status(201).json(event) ) 
             .catch( (error) => this.handleError(error, res) );
     }
 

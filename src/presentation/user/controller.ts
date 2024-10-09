@@ -22,11 +22,10 @@ export class AuthController {
     registerUser = (req: Request, res: Response) => {
         const [error, registerUserDto] = RegisterUserDto.create(req.body);
 
-        console.log('Error', error);
         if (error) return res.status(400).json({ error });
 
         this.authService.registerUser(registerUserDto!)
-            .then((user) => res.json(user))
+            .then((user) => res.status(201).json(user))
             .catch((error) => this.handleError(error, res));
     }
 

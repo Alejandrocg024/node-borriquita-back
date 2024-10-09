@@ -19,10 +19,6 @@ export class UpdatePayDto {
     static create( object: { [key:string]:any } ): [string?, UpdatePayDto?] {
         let { id, user, concept, quantity, startDate, finishDate, state, payMethod} = object;
 
-        console.log(object);
-
-        console.log(concept);
-
         if ( !id ) return ['Falta el ID'];
 
         if ( !user ) return ['Falta el usuario'];

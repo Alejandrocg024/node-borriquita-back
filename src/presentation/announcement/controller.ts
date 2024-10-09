@@ -34,13 +34,8 @@ export class AnnouncementController {
         const { id } = req.params;
         const userRole = req.body.user?.role;
 
-        console.log('User role: ', userRole);
         this.announcementService.getAnnouncement(id)
             .then( (ann) => {
-                // if (!ann?.available && (userRole !== 'MAYORDOMIA_ROLE' || userRole !== 'COMUNICACIONES_ROLE')) {
-                //     console.log('No tienes permisos para ver esta noticia');
-                //     return res.status(401).json({error: 'No tienes permisos para ver esta noticia'});
-                // }
                 return res.json(ann);
             }  )
             .catch( (error) => this.handleError(error, res) );
@@ -53,7 +48,7 @@ export class AnnouncementController {
         if(error) return res.status(400).json({error});
 
         this.announcementService.createAnnouncement(createAnnouncementDto!, req.body.user)
-            .then( (announcement) => res.json(announcement) ) 
+            .then( (announcement) => res.status(201).json(announcement) ) 
             .catch( (error) => this.handleError(error, res) );
     }
 

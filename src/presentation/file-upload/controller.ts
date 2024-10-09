@@ -25,9 +25,6 @@ export class FileUploadController {
 
   uploadFile = ( req: Request, res: Response ) => {
 
-    console.log('req.files', req.files);
-    console.log('req.body', req.body);
-
     const type = req.params.type;
     const file = req.body.files.at(0) as UploadedFile;
 

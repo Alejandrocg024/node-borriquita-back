@@ -7,7 +7,6 @@ export class AnnouncementService {
 
     async getAnnouncements( paginationDto: PaginationDto ) {
         const { page, limit } = paginationDto;
-        console.log('PaginationDto', paginationDto);
 
         try {
             const [ total, announcement ] = await Promise.all([
@@ -17,8 +16,6 @@ export class AnnouncementService {
                     .limit( limit )
                     .populate('author')
             ]);
-
-            console.log('Total', announcement);
 
             return {
                 page,
@@ -36,9 +33,9 @@ export class AnnouncementService {
     }
 
     async getAnnouncement( id: string ) {
+        const announcement = await AnnouncementModel.findById(id).populate('author');
+        if (!announcement) throw CustomError.notFound('Noticia no encontrada');
         try {
-            const announcement = await AnnouncementModel.findById(id).populate('author');
-            if (!announcement) throw CustomError.notFound('Noticia no encontrada');
 
             return AnnouncementEntity.fromObject(announcement)
         } catch ( error ) {
@@ -48,7 +45,7 @@ export class AnnouncementService {
     
     async createAnnouncement(createAnnouncementDto: CreateAnnouncementDto, user: UserEntity) {
 
-        if (!user) throw CustomError.badRequest('Usuario no encontrado');
+        if (!user) throw CustomError.notFound('Usuario no encontrado');
 
         try {
             const announcement = new AnnouncementModel({
@@ -65,17 +62,22 @@ export class AnnouncementService {
     }
 
     async updateAnnouncement(updateAnnouncementDto: UpdateAnnouncementDto, user: UserEntity) {
+        if (!user) throw CustomError.notFound('Usuario no encontrado');
 
-        if (!user) throw CustomError.badRequest('Usuario no encontrado');
+        const announcement = await AnnouncementModel.findById(updateAnnouncementDto.id);
+        if (!announcement) throw CustomError.notFound('Noticia no encontrada');
+
+        
 
         try {
+
             const updatedAnnouncement = await AnnouncementModel.findByIdAndUpdate(
                 updateAnnouncementDto.id, 
                 updateAnnouncementDto, 
             {
-                new: true,        // Devuelve el documento actualizado
-                overwrite: true,  // Reemplaza completamente el documento
-                runValidators: true,  // Ejecuta las validaciones del esquema
+                new: true,        
+                overwrite: true,  
+                runValidators: true,  
               });
 
               if (!updatedAnnouncement) {
@@ -89,10 +91,10 @@ export class AnnouncementService {
     }
 
     async deleteAnnouncement( id: string ) {
+        const deletedAnnouncement = await AnnouncementModel.findByIdAndDelete(id);
+        if (!deletedAnnouncement) throw CustomError.notFound('Noticia no encontrada');
 
         try {
-            const deletedAnnouncement = await AnnouncementModel.findByIdAndDelete(id);
-            if (!deletedAnnouncement) throw CustomError.notFound('Noticia no encontrada');
 
             return;
         } catch ( error ) {

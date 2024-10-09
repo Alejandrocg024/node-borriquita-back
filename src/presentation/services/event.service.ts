@@ -33,9 +33,11 @@ export class EventService {
     }
 
     async getEvent( id: string ) {
+        const event = await EventModel.findById(id);
+        if (!event) throw CustomError.notFound('Evento no encontrado');
+
         try {
-            const event = await EventModel.findById(id);
-            if (!event) throw CustomError.notFound('Evento no encontrado');
+
 
             return EventEntity.fromObject(event)
         } catch ( error ) {
@@ -49,8 +51,6 @@ export class EventService {
             const event = new EventModel(createEventDto);
 
             await event.save();
-
-            console.log(event);
 
             return EventEntity.fromObject(event);
         } catch ( error ) {
@@ -71,7 +71,7 @@ export class EventService {
               });
 
               if (!updatedEvent) {
-                return CustomError.notFound('Noticia no encontrada');
+                return CustomError.notFound('Evento no encontrado');
               }
 
             return EventEntity.fromObject(updatedEvent);
@@ -81,10 +81,11 @@ export class EventService {
     }
 
     async deleteEvent( id: string ) {
-
+        const deletedAnnouncement = await EventModel.findByIdAndDelete(id);
+        if (!deletedAnnouncement) throw CustomError.notFound('Evento no encontrado');
+        
         try {
-            const deletedAnnouncement = await EventModel.findByIdAndDelete(id);
-            if (!deletedAnnouncement) throw CustomError.notFound('Noticia no encontrada');
+
 
             return;
         } catch ( error ) {

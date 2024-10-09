@@ -1,5 +1,5 @@
+import { AnnouncementModel, EventModel, MongoDatabase, PaysModel, RequestFormModel, UserModel } from '..';
 import { envs } from '../../config';
-import { AnnouncementModel, EventModel, MongoDatabase, PaysModel, RequestFormModel, UserModel } from '../mongo';
 import { seedData } from './data';
 
 

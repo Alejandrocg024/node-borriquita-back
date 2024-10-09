@@ -33,9 +33,11 @@ export class PayService {
     }
 
     async getPay( id: string ) {
+        const pay = await PaysModel.findById(id).populate('user');
+        if (!pay) throw CustomError.notFound('Pago no encontrado');
+
+
         try {
-            const pay = await PaysModel.findById(id).populate('user');
-            if (!pay) throw CustomError.notFound('Pago no encontrado');
 
             return PayEntity.fromObject(pay)
         } catch ( error ) {
@@ -64,6 +66,7 @@ export class PayService {
         
                     await pay.save();
                 }
+                
             }
 
 
@@ -75,7 +78,6 @@ export class PayService {
 
     async checkout(updatePayDto: UpdatePayDto, user: UserEntity) {
 
-        console.log('updatePayDto');
         if (!user) throw CustomError.badRequest('Usuario no encontrado');
 
         try {
@@ -114,8 +116,6 @@ export class PayService {
 
         if (!user) throw CustomError.badRequest('Usuario no encontrado');
 
-        console.log('token', token);
-
         const payload = await JwtAdapter.validateToken(token);
         if (!payload) throw CustomError.unauthorized('Token inválido');
 
@@ -153,6 +153,9 @@ export class PayService {
 
         if (!user) throw CustomError.badRequest('Usuario no encontrado');
 
+        const pay = await PaysModel.findById(updatePayDto.id);
+        if (!pay) throw CustomError.notFound('Pago no encontrado');
+
 
         try {
 
@@ -176,10 +179,11 @@ export class PayService {
     }
 
     async deletePay( id: string ) {
+        const deletedPay = await PaysModel.findByIdAndUpdate(id, { state: 'CANCELLED' });
+        if (!deletedPay) throw CustomError.notFound('Pago no encontrado');
+
 
         try {
-            const deletedPay = await PaysModel.findByIdAndUpdate(id, { state: 'CANCELLED' });
-            if (!deletedPay) throw CustomError.notFound('Pago no encontrado');
 
             return;
         } catch ( error ) {

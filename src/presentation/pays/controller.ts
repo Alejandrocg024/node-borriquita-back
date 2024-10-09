@@ -48,28 +48,16 @@ export class PayController {
     createPay = (req: Request, res: Response) => {
         const [error, createPayDto] = CreatePayDto.create(req.body);
 
-        console.log('Error', createPayDto);
+
         if(error) return res.status(400).json({error});
 
         this.payService.createPay(createPayDto!)
-            .then( (pay) => res.json(pay) ) 
-            .catch( (error) => this.handleError(error, res) );
-    }
-
-    updatePay = (req: Request, res: Response) => {
-        const { id } = req.params;
-        const [error, updatePayDto] = UpdatePayDto.create({id, ...req.body});
-
-        if(error) return res.status(400).json({error});
-
-        this.payService.updatePay(updatePayDto!, req.body.user)
-            .then( (pay) => res.json(pay) ) 
+            .then( (pay) => res.status(201).json(pay) ) 
             .catch( (error) => this.handleError(error, res) );
     }
 
     checkout = (req: Request, res: Response) => {
         const { id } = req.params;
-        console.log('checkout');
         const [error, updatePayDto] = UpdatePayDto.create({id, ...req.body});
 
         if(error) return res.status(400).json({error});

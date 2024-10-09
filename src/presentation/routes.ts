@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { AnnouncementRoutes, EventRoutes, PayRoutes, RequestFormRoutes, UserRoutes } from '.';
+import { AnnouncementRoutes, EventRoutes, PayRoutes, UserRoutes } from '.';
 import { FileUploadRoutes } from './file-upload/routes';
 
 
@@ -19,7 +19,7 @@ export class AppRoutes {
 
     router.use('/api/upload', FileUploadRoutes.routes);
     
-    router.use('/api/requestForm', RequestFormRoutes.routes);
+    // router.use('/api/requestForm', RequestFormRoutes.routes);
     
     return router;
   }
