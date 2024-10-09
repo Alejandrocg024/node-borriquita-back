@@ -39,6 +39,28 @@ export class AuthMiddleware {
         const authorization = req.header('Authorization');
         const token = authorization?.split(' ')[1] || ''
 
+        
+
+        // {
+        //     id: '6706ee0a635641e070c06bc1',
+        //     user: {
+        //       dni: '23456789Z',
+        //       name: 'Alejandro',
+        //       lastname: 'Campano',
+        //       birthDate: '2002-05-31T22:00:00.000Z',
+        //       email: 'alecamgal1@alum.us.es',
+        //       emailValidated: true,
+        //       admissionDate: '2024-10-09T20:53:07.540Z',
+        //       address: 'Calle Prueba',
+        //       id: '6706ed33136d1a8e82463ec5'
+        //     },
+        //     concept: 'Cuota inicial de hermano',
+        //     quantity: 25,
+        //     startDate: '2024-10-09T20:56:42.254Z',
+        //     finishDate: '2024-11-09T21:56:42.254Z',
+        //     state: 'PENDING'
+        //   }
+
         try {
             if(token) {
                 const payload = await JwtAdapter.validateToken<{ id: string }>(token);
@@ -46,6 +68,8 @@ export class AuthMiddleware {
                 const user = await UserModel.findById(payload?.id);
     
                 if (!user) return;
+                
+                if((req.body.id && req.body.user && req.body.concept && req.body.quantity) && user.id !== req.body.user.id) return;
     
                 req.body.user = UserEntity.fromObject(user);
             }

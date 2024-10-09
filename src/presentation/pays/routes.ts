@@ -19,7 +19,7 @@ export class PayRoutes {
     router.post('/', [AuthMiddleware.validateMay], controller.createPay);
     router.delete('/:id', [AuthMiddleware.validateMay], controller.deletePay);
 
-    router.put('/:id', [AuthMiddleware.validateMay], controller.checkout);
+    router.put('/:id', [AuthMiddleware.checkUser], controller.checkout);
     router.get('/accept/:token', [AuthMiddleware.validateMay], controller.acceptPay);
 
     return router;

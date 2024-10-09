@@ -29,7 +29,6 @@ export class Server {
   async start() {
 
     //CORS
-    
 
     //* Middlewares
     this.app.use( express.json() ); // raw
